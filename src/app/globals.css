@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-cinzel: 'Cinzel', serif;
+  --font-plus-jakarta-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --background: #FAF7F0;
+  --foreground: #1c271f;
+  --surface-card: #FFFFFF;
+  --surface-border: #E6DEC8;
+  --brand-forest: #0E3B23;
+  --brand-gold: #C6923A;
+  --brand-emerald: #059669;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar matching parchment theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #FAF7F0;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4C7A5;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #B8A578;
+}
+
+/* Tabular figures for Indian Rupee prices */
+.tabular-price {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Subtle parchment texture or glow */
+.parchment-border {
+  border: 1px solid #E6DEC8;
+}
+
+.gold-badge {
+  background: linear-gradient(135deg, #FDF9F0 0%, #F5ECDA 100%);
+  border: 1px solid #C6923A;
+  color: #8C6118;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(198, 146, 58, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(198, 146, 58, 0.55);
+  }
+}
+
+.spotlight-active {
+  animation: pulseGlow 2.5s infinite ease-in-out;
+  border-color: #C6923A !important;
+}
