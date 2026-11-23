@@ -118,7 +118,7 @@ export default function CheckoutPage() {
 
       setProcessingStatus("Opening payment gateway...");
 
-      // 3. Configure Razorpay modal
+      // 3. Configure Razorpay modal strictly for UPI & QR (Cards, Netbanking & Wallets disabled)
       const options = {
         key: orderData.key_id || orderData.keyId,
         amount: orderData.amount,
@@ -127,6 +127,32 @@ export default function CheckoutPage() {
         description: "Treasury Digital Resource Package",
         image: "/logo.png",
         order_id: orderData.order_id || orderData.orderId,
+        method: "upi",
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: "Pay using UPI / QR",
+                instruments: [
+                  {
+                    method: "upi",
+                  },
+                ],
+              },
+            },
+            sequence: ["block.upi"],
+            preferences: {
+              show_default_blocks: false,
+            },
+            hide: [
+              { method: "card" },
+              { method: "netbanking" },
+              { method: "wallet" },
+              { method: "emi" },
+              { method: "paylater" },
+            ],
+          },
+        },
         prefill: {
           name: customerName.trim() || undefined,
           email: customerEmail.trim() || undefined,
@@ -224,10 +250,10 @@ export default function CheckoutPage() {
       {/* Page Heading */}
       <div className="text-center sm:text-left">
         <h1 className="font-cinzel text-3xl sm:text-4xl font-bold text-[#0E3B23]">
-          Pay Securely
+          Pay Securely via UPI
         </h1>
         <p className="text-xs sm:text-sm text-[#5C5343] mt-1">
-          Instant digital delivery via Razorpay with UPI, QR, Cards, or NetBanking.
+          Instant digital delivery via UPI Apps (Google Pay, PhonePe, Paytm) or Dynamic QR Code.
         </p>
       </div>
 
@@ -259,41 +285,39 @@ export default function CheckoutPage() {
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF7F0] border border-[#E6DEC8] text-[#0E3B23] text-[11px] font-bold tracking-wider uppercase mb-1">
                   <Sparkles className="w-3 h-3 text-[#C6923A]" />
-                  <span>Official Razorpay Payment Gateway</span>
+                  <span>Verified UPI Gateway</span>
                 </div>
                 <h2 className="font-heading text-lg sm:text-xl font-bold text-[#0E3B23]">
-                  Select Payment Method
+                  Pay via UPI / QR
                 </h2>
                 <p className="text-xs text-[#6B5E49] mt-0.5">
-                  UPI, Instant Dynamic QR, Debit/Credit Card, or NetBanking
+                  Scan the dynamic QR code or pay directly with any UPI app
                 </p>
               </div>
               <span className="hidden sm:inline-block text-[11px] font-mono font-bold text-[#0E3B23] bg-[#FAF7F0] px-2.5 py-1 rounded-md border border-[#E6DEC8]">
-                RBI Compliant
+                NPCI &bull; RBI Compliant
               </span>
             </div>
 
-            {/* Supported Payment Options Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="p-3 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] text-center">
-                <Smartphone className="w-4 h-4 text-[#0E3B23] mx-auto mb-1" />
-                <span className="text-xs font-bold text-[#0E3B23] block">UPI Apps</span>
-                <span className="text-[10px] text-[#6B5E49]">GPay, PhonePe, Paytm</span>
+            {/* Supported Payment Options Grid: UPI & QR Only */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-4 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white border border-[#E6DEC8] flex items-center justify-center flex-shrink-0 text-[#0E3B23] shadow-xs">
+                  <Smartphone className="w-5 h-5 text-[#0E3B23]" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-[#0E3B23] block">UPI Instant Apps</span>
+                  <span className="text-[11px] text-[#6B5E49]">Google Pay, PhonePe, Paytm, BHIM, CRED</span>
+                </div>
               </div>
-              <div className="p-3 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] text-center">
-                <QrCode className="w-4 h-4 text-[#0E3B23] mx-auto mb-1" />
-                <span className="text-xs font-bold text-[#0E3B23] block">Dynamic QR</span>
-                <span className="text-[10px] text-[#6B5E49]">Scan with any app</span>
-              </div>
-              <div className="p-3 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] text-center">
-                <CreditCard className="w-4 h-4 text-[#0E3B23] mx-auto mb-1" />
-                <span className="text-xs font-bold text-[#0E3B23] block">Cards</span>
-                <span className="text-[10px] text-[#6B5E49]">Visa, MC, RuPay</span>
-              </div>
-              <div className="p-3 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] text-center">
-                <Building2 className="w-4 h-4 text-[#0E3B23] mx-auto mb-1" />
-                <span className="text-xs font-bold text-[#0E3B23] block">NetBanking</span>
-                <span className="text-[10px] text-[#6B5E49]">50+ Indian banks</span>
+              <div className="p-4 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-white border border-[#E6DEC8] flex items-center justify-center flex-shrink-0 text-[#0E3B23] shadow-xs">
+                  <QrCode className="w-5 h-5 text-[#0E3B23]" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-[#0E3B23] block">Dynamic QR Code</span>
+                  <span className="text-[11px] text-[#6B5E49]">Scan with any camera or UPI app</span>
+                </div>
               </div>
             </div>
 
@@ -356,7 +380,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <Lock className="w-5 h-5 text-[#C6923A]" />
-                    <span>Pay ₹{totalPrice} via Razorpay</span>
+                    <span>Pay ₹{totalPrice} via UPI / QR</span>
                   </>
                 )}
               </button>
@@ -366,7 +390,7 @@ export default function CheckoutPage() {
             <div className="pt-2 border-t border-[#E6DEC8]/60 flex flex-col sm:flex-row items-center justify-between text-xs text-[#6B5E49] gap-2">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#059669]" />
-                <span>256-bit SSL encrypted &bull; Zero storage of card/UPI credentials</span>
+                <span>256-bit SSL encrypted &bull; Official NPCI UPI integration</span>
               </span>
               <span className="font-mono text-[11px] text-[#8A7E6B]">
                 Immediate download unlock upon payment confirmation
