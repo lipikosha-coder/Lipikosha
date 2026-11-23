@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { PRODUCTS, getProductById } from "@/lib/products";
+import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { orderId, productIds, upiId, paymentMethod } = body;
+    const {
+      orderId,
+      productIds,
+      upiId,
+      paymentMethod,
+      razorpayPaymentId,
+      razorpayOrderId,
+      razorpaySignature,
+    } = body;
 
     const itemsToUnlock = Array.isArray(productIds)
       ? productIds.map((id: string) => getProductById(id)).filter(Boolean)
@@ -16,6 +25,22 @@ export async function POST(req: NextRequest) {
         { error: "No valid products provided for verification" },
         { status: 400 }
       );
+    }
+
+    // If Razorpay live signature is provided and secret is configured, verify HMAC signature
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (razorpaySignature && razorpayOrderId && razorpayPaymentId && keySecret) {
+      const generatedSignature = crypto
+        .createHmac("sha256", keySecret)
+        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+        .digest("hex");
+
+      if (generatedSignature !== razorpaySignature) {
+        return NextResponse.json(
+          { error: "Payment verification failed: Invalid transaction signature" },
+          { status: 400 }
+        );
+      }
     }
 
     const supabaseUrl =
@@ -37,6 +62,11 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.warn("Supabase client init warning:", e);
     }
+
+    const effectiveOrderId =
+      razorpayOrderId ||
+      orderId ||
+      `LK-UPI-${Date.now().toString(36).toUpperCase()}`;
 
     // Generate signed download URLs using product.fileName in the 'products' bucket
     const unlockedFiles = await Promise.all(
@@ -69,9 +99,9 @@ export async function POST(req: NextRequest) {
         // construct the authentic Supabase signed storage endpoint URL format
         if (!signedUrl) {
           const cleanFileName = encodeURIComponent(product.fileName);
-          const mockToken = Buffer.from(`${orderId}:${product.fileName}:${Date.now()}`).toString(
-            "base64url"
-          );
+          const mockToken = Buffer.from(
+            `${effectiveOrderId}:${product.fileName}:${Date.now()}`
+          ).toString("base64url");
           signedUrl = `${supabaseUrl}/storage/v1/object/sign/products/${cleanFileName}?token=${mockToken}&download=${cleanFileName}`;
         }
 
@@ -88,10 +118,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      orderId: orderId || `LK-UPI-${Date.now().toString(36).toUpperCase()}`,
+      orderId: effectiveOrderId,
+      paymentId: razorpayPaymentId || `pay_sim_${Date.now().toString(36)}`,
       verifiedAt: new Date().toISOString(),
-      paymentMethod: paymentMethod || "UPI",
-      upiId: upiId || "user@upi",
+      paymentMethod: razorpayPaymentId ? "Razorpay" : paymentMethod || "UPI",
+      upiId: upiId || (razorpayPaymentId ? "razorpay@gateway" : "user@upi"),
       unlockedFiles: unlockedFiles.filter(Boolean),
     });
   } catch (error) {
