@@ -80,22 +80,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Fallback sandbox / demo mode if keys are not yet configured in environment
-    const demoOrderId = `order_demo_${Date.now().toString(36)}_${Math.floor(1000 + Math.random() * 9000)}`;
-    return NextResponse.json({
-      success: true,
-      isLiveGateway: false,
-      diagnostic: {
-        hasKeyId: Boolean(keyId),
-        hasKeySecret: Boolean(keySecret),
-        missing: !keyId ? "RAZORPAY_KEY_ID" : !keySecret ? "RAZORPAY_KEY_SECRET" : "None",
+    // If keys are not configured in environment, return explicit error
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Razorpay payment gateway credentials are not configured on server.",
+        diagnostic: {
+          hasKeyId: Boolean(keyId),
+          hasKeySecret: Boolean(keySecret),
+        },
       },
-      orderId: demoOrderId,
-      amount: amountInPaise,
-      currency: "INR",
-      keyId: keyId || "rzp_test_placeholder",
-      productTitles: validProducts.map((p) => p?.title),
-    });
+      { status: 503 }
+    );
   } catch (err) {
     console.error("Create Razorpay order error:", err);
     return NextResponse.json(

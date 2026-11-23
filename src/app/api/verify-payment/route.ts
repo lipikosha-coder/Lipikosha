@@ -27,20 +27,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // If Razorpay live signature is provided and secret is configured, verify HMAC signature
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-    if (razorpaySignature && razorpayOrderId && razorpayPaymentId && keySecret) {
-      const generatedSignature = crypto
-        .createHmac("sha256", keySecret)
-        .update(`${razorpayOrderId}|${razorpayPaymentId}`)
-        .digest("hex");
+    // STRICT VERIFICATION: Razorpay cryptographic HMAC SHA256 signature verification
+    const keySecret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
+    if (!keySecret) {
+      console.error("Payment verification failed: RAZORPAY_KEY_SECRET is missing");
+      return NextResponse.json(
+        { error: "Payment gateway configuration error on server" },
+        { status: 500 }
+      );
+    }
 
-      if (generatedSignature !== razorpaySignature) {
-        return NextResponse.json(
-          { error: "Payment verification failed: Invalid transaction signature" },
-          { status: 400 }
-        );
-      }
+    if (!razorpaySignature || !razorpayOrderId || !razorpayPaymentId) {
+      console.error("Payment verification rejected: Missing transaction signature or IDs", {
+        hasSignature: Boolean(razorpaySignature),
+        hasOrderId: Boolean(razorpayOrderId),
+        hasPaymentId: Boolean(razorpayPaymentId),
+      });
+      return NextResponse.json(
+        { error: "Payment verification rejected: Missing transaction credentials" },
+        { status: 400 }
+      );
+    }
+
+    const generatedSignature = crypto
+      .createHmac("sha256", keySecret)
+      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+      .digest("hex");
+
+    if (generatedSignature !== razorpaySignature) {
+      console.error("Cryptographic signature mismatch!", {
+        generated: generatedSignature,
+        received: razorpaySignature,
+      });
+      return NextResponse.json(
+        { error: "Payment verification failed: Invalid transaction signature" },
+        { status: 400 }
+      );
     }
 
     const supabaseUrl =
