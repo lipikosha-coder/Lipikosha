@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { X, Trash2, ArrowRight, ShoppingBag, Plus, Zap, ShieldCheck } from "lucide-react";
@@ -64,6 +65,14 @@ export function CartDrawer() {
                     key={item.id}
                     className="p-3.5 rounded-xl bg-white border border-[#E6DEC8] flex items-center justify-between gap-3 shadow-xs"
                   >
+                    <div className="relative w-12 aspect-[3/4] rounded-md overflow-hidden border border-[#E6DEC8] flex-shrink-0">
+                      <Image
+                        src={item.coverImage}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <div className="truncate flex-1">
                       <h4 className="font-heading text-xs font-bold text-[#0E3B23] truncate">
                         {item.title}

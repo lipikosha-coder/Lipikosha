@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { X, Lock, Check, ShoppingBag, BookOpen, Layers, Sparkles } from "lucide-react";
@@ -53,15 +54,25 @@ export function PeekInsideDrawer() {
 
           {/* Body */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* Title & Category */}
-            <div className="space-y-1.5">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#C6923A] bg-white border border-[#E6DEC8] px-2.5 py-0.5 rounded-full">
-                {peekProduct.category}
-              </span>
-              <h2 className="font-heading text-xl font-bold text-[#0E3B23]">
-                {peekProduct.title}
-              </h2>
-              <p className="text-xs text-[#5C5343]">{peekProduct.hook}</p>
+            {/* Title & Category with Cover Image */}
+            <div className="flex gap-4 items-start">
+              <div className="relative w-20 aspect-[3/4] rounded-lg overflow-hidden border border-[#C6923A]/40 shadow-md flex-shrink-0">
+                <Image
+                  src={peekProduct.coverImage}
+                  alt={peekProduct.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="space-y-1.5 flex-1 min-w-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#C6923A] bg-white border border-[#E6DEC8] px-2.5 py-0.5 rounded-full inline-block">
+                  {peekProduct.category}
+                </span>
+                <h2 className="font-heading text-base sm:text-lg font-bold text-[#0E3B23] leading-snug">
+                  {peekProduct.title}
+                </h2>
+                <p className="text-xs text-[#5C5343]">{peekProduct.hook}</p>
+              </div>
             </div>
 
             {/* Spec Pills */}

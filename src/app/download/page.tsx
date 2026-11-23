@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart, UnlockedProductItem } from "@/context/CartContext";
 import { Stepper } from "@/components/Stepper";
@@ -152,9 +153,13 @@ export default function DownloadPage() {
             >
               {/* Product Info Row */}
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[#FAF7F0] border border-[#E6DEC8] flex flex-col items-center justify-center flex-shrink-0 text-[#0E3B23] p-2">
-                  <FileText className="w-7 h-7 text-[#0E3B23] mb-0.5" />
-                  <span className="font-mono text-[10px] font-bold text-[#0E3B23]">PDF</span>
+                <div className="relative w-16 sm:w-20 aspect-[3/4] rounded-xl overflow-hidden border border-[#E6DEC8] shadow-md flex-shrink-0">
+                  <Image
+                    src={product.coverImage}
+                    alt={product.title}
+                    fill
+                    className="object-cover"
+                  />
                 </div>
 
                 <div className="space-y-1 flex-1 min-w-0">

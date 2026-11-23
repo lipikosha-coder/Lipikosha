@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { Stepper } from "@/components/Stepper";
@@ -63,11 +64,13 @@ export default function CartPage() {
               >
                 {/* Thumbnail & Info */}
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-[#FAF7F0] border border-[#E6DEC8] flex flex-col items-center justify-center flex-shrink-0 text-[#0E3B23] p-2">
-                    <FileText className="w-5 h-5 text-[#0E3B23] mb-0.5" />
-                    <span className="font-mono text-[10px] font-bold text-center text-[#0E3B23]">
-                      PDF
-                    </span>
+                  <div className="relative w-14 sm:w-16 aspect-[3/4] rounded-lg overflow-hidden border border-[#E6DEC8] shadow-xs flex-shrink-0">
+                    <Image
+                      src={item.coverImage}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
 
                   <div className="space-y-1">

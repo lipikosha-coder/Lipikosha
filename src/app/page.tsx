@@ -53,26 +53,38 @@ function HomeContent() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-r from-[#FFFDF8] via-[#FAF7F0] to-[#F5ECE0] border-2 border-[#C6923A] rounded-3xl p-6 sm:p-10 shadow-gold-glow relative overflow-hidden">
             <div className="flex flex-col lg:flex-row items-center gap-8 justify-between">
-              <div className="space-y-4 max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#C6923A] rounded-full text-xs font-bold text-[#8C6118]">
-                  <Sparkles className="w-3.5 h-3.5 text-[#C6923A]" />
-                  <span>Spotlight Ad Access • 1-Click UPI Unlock</span>
+              <div className="flex flex-col sm:flex-row items-center gap-6 max-w-2xl">
+                <div className="relative w-36 sm:w-44 aspect-[3/4] rounded-xl overflow-hidden border border-[#C6923A]/50 shadow-xl flex-shrink-0">
+                  <Image
+                    src={spotlightProduct.coverImage}
+                    alt={spotlightProduct.title}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                  <div className="absolute left-0 inset-y-0 w-2.5 bg-gradient-to-r from-[#A37424] via-[#C6923A] to-[#8C6118] border-r border-black/20" />
                 </div>
-                <h2 className="font-heading text-2xl sm:text-4xl font-bold text-[#0E3B23] leading-tight">
-                  {spotlightProduct.title}
-                </h2>
-                <p className="text-sm sm:text-base text-[#5C5343] leading-relaxed">
-                  {spotlightProduct.hook}
-                </p>
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {spotlightProduct.specPills.map((pill, i) => (
-                    <span
-                      key={i}
-                      className="px-3 py-1 bg-white border border-[#E6DEC8] rounded-md text-xs font-medium text-[#0E3B23]"
-                    >
-                      ✓ {pill}
-                    </span>
-                  ))}
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#C6923A] rounded-full text-xs font-bold text-[#8C6118]">
+                    <Sparkles className="w-3.5 h-3.5 text-[#C6923A]" />
+                    <span>Spotlight Ad Access • 1-Click UPI Unlock</span>
+                  </div>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-[#0E3B23] leading-tight">
+                    {spotlightProduct.title}
+                  </h2>
+                  <p className="text-sm text-[#5C5343] leading-relaxed">
+                    {spotlightProduct.hook}
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {spotlightProduct.specPills.map((pill, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 bg-white border border-[#E6DEC8] rounded-md text-xs font-medium text-[#0E3B23]"
+                      >
+                        ✓ {pill}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </div>
 

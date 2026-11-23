@@ -12,7 +12,6 @@ import {
   ShoppingBag,
   Sparkles,
   BookOpen,
-  FileText,
 } from "lucide-react";
 
 interface ProductCardProps {
@@ -91,7 +90,7 @@ export function ProductCard({ product, isSpotlighted = false }: ProductCardProps
           ref={cardRef}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          className="relative w-full h-52 rounded-xl bg-gradient-to-b from-[#F7F4EB] to-[#ECE5D4] border border-[#E6DEC8] p-4 mb-4 flex items-center justify-center overflow-hidden cursor-pointer"
+          className="relative w-full h-56 rounded-xl bg-gradient-to-b from-[#F7F4EB] to-[#ECE5D4] border border-[#E6DEC8] p-4 mb-4 flex items-center justify-center overflow-hidden cursor-pointer"
           onClick={() => router.push(`/resources/${product.slug}`)}
           style={{
             perspective: "800px",
@@ -100,42 +99,25 @@ export function ProductCard({ product, isSpotlighted = false }: ProductCardProps
           {/* Subtle parchment grain */}
           <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#0E3B23_1px,transparent_1px)] [background-size:16px_16px]" />
 
-          {/* 3D Book Cover Object */}
+          {/* 3D Book Cover with actual coverImage using aspect-[3/4] and object-cover */}
           <div
-            className="relative w-36 h-44 rounded-r-lg rounded-l-xs bg-[#0E3B23] text-white shadow-xl border-t border-b border-r border-[#C6923A]/50 p-3 flex flex-col justify-between transition-transform duration-100 ease-out select-none"
+            className="relative w-36 h-48 aspect-[3/4] rounded-r-lg rounded-l-xs overflow-hidden shadow-2xl border border-[#C6923A]/40 transition-transform duration-100 ease-out select-none flex-shrink-0"
             style={{
               transform: `rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(10px)`,
               boxShadow: "5px 10px 25px rgba(14, 59, 35, 0.28), -2px 0 6px rgba(0,0,0,0.3)",
             }}
           >
+            <Image
+              src={product.coverImage}
+              alt={product.title}
+              fill
+              sizes="(max-width: 768px) 144px, 144px"
+              className="object-cover"
+              priority={product.isFeatured}
+            />
+
             {/* Book Spine Gold Accent */}
             <div className="absolute left-0 inset-y-0 w-2.5 bg-gradient-to-r from-[#A37424] via-[#C6923A] to-[#8C6118] border-r border-black/20" />
-
-            {/* Top Badge */}
-            <div className="pl-2 flex items-center justify-between">
-              <span className="text-[8px] font-mono tracking-widest uppercase text-[#FAF7F0]/80">
-                Lipi Kosha
-              </span>
-              <span className="text-[7px] font-bold uppercase bg-[#C6923A] text-white px-1.5 py-0.5 rounded">
-                PDF
-              </span>
-            </div>
-
-            {/* Center Book Crest / Emblem */}
-            <div className="my-auto pl-2 text-center space-y-1">
-              <div className="w-8 h-8 rounded-full bg-white/10 border border-[#C6923A] mx-auto flex items-center justify-center p-1">
-                <FileText className="w-4 h-4 text-[#C6923A]" />
-              </div>
-              <p className="font-cinzel text-[10px] font-bold leading-tight text-[#FAF7F0] line-clamp-2">
-                {product.title}
-              </p>
-            </div>
-
-            {/* Bottom Book Foil Stamp */}
-            <div className="pl-2 pt-1 border-t border-[#C6923A]/40 flex items-center justify-between text-[8px] text-[#FAF7F0]/80 font-mono">
-              <span>{product.category}</span>
-              <span className="font-bold text-[#C6923A]">₹{product.price}</span>
-            </div>
           </div>
 
           {/* Badge top-left */}
@@ -168,12 +150,12 @@ export function ProductCard({ product, isSpotlighted = false }: ProductCardProps
           {product.title}
         </Link>
 
-        {/* Short Hook matching Blueprint */}
+        {/* Short Hook */}
         <p className="text-xs text-[#5C5343] line-clamp-2 leading-relaxed mb-3">
           {product.hook}
         </p>
 
-        {/* 3 Visual Spec Pills matching Blueprint */}
+        {/* 3 Visual Spec Pills */}
         <div className="flex flex-wrap gap-1.5 mb-4">
           {product.specPills.map((pill, idx) => (
             <span

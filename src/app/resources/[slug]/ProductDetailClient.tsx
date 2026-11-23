@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Product } from "@/lib/products";
 import { useCart } from "@/context/CartContext";
@@ -48,44 +49,43 @@ export function ProductDetailClient({
         {/* Left Column: Visual Preview + What's inside Checklist */}
         <div className="lg:col-span-7 space-y-8">
           {/* Main Visual Preview Box */}
-          <div className="relative w-full aspect-video sm:aspect-[16/10] rounded-2xl border border-[#E6DEC8] bg-gradient-to-br from-[#FAF7F0] via-white to-[#F3EDE0] p-8 flex flex-col justify-between overflow-hidden shadow-card">
+          <div className="relative w-full rounded-2xl border border-[#E6DEC8] bg-gradient-to-br from-[#FAF7F0] via-white to-[#F3EDE0] p-6 sm:p-8 flex flex-col items-center justify-center overflow-hidden shadow-card">
             {/* Background geometric overlay */}
             <div className="absolute inset-0 bg-[radial-gradient(#0E3B23_1px,transparent_1px)] [background-size:24px_24px] opacity-10" />
 
             {/* Top row badges */}
-            <div className="relative z-10 flex items-center justify-between">
-              {product.badge && (
+            <div className="relative z-10 w-full flex items-center justify-between mb-6">
+              {product.badge ? (
                 <span className="bg-[#FAF7F0] border border-[#C6923A] text-[#8C6118] text-xs font-bold px-3 py-1 rounded-full shadow-xs">
-                  {product.badge}
+                  ★ {product.badge}
                 </span>
-              )}
+              ) : <div />}
               <span className="bg-white/90 border border-[#E6DEC8] text-[#5C5343] text-xs font-mono px-2.5 py-1 rounded-md flex items-center gap-1">
                 <span className="font-bold text-[#0E3B23]">PDF</span>
                 <span>Document</span>
               </span>
             </div>
 
-            {/* Center icon / banner */}
-            <div className="relative z-10 my-auto text-center py-6 space-y-3">
-              <div className="w-16 h-16 rounded-2xl bg-white border border-[#E6DEC8] shadow-sm mx-auto flex items-center justify-center text-[#0E3B23]">
-                <FileText className="w-8 h-8 text-[#0E3B23]" />
-              </div>
-              <h2 className="font-heading text-xl sm:text-2xl font-bold text-[#0E3B23]">
-                {product.title}
-              </h2>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/80 border border-[#E6DEC8] text-xs font-medium text-[#6B5E49]">
-                <span>Delivered File:</span>
-                <span className="font-mono text-[#0E3B23] font-semibold">{product.fileName}</span>
-              </div>
+            {/* Cover Image in 3/4 aspect ratio */}
+            <div className="relative z-10 w-48 sm:w-60 aspect-[3/4] rounded-xl overflow-hidden shadow-2xl border border-[#C6923A]/40 mb-6 flex-shrink-0">
+              <Image
+                src={product.coverImage}
+                alt={product.title}
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 640px) 192px, 240px"
+              />
+              <div className="absolute left-0 inset-y-0 w-3 bg-gradient-to-r from-[#A37424] via-[#C6923A] to-[#8C6118] border-r border-black/20" />
             </div>
 
             {/* Bottom metadata strip */}
-            <div className="relative z-10 flex items-center justify-between text-xs text-[#6B5E49] pt-4 border-t border-[#E6DEC8]/60">
+            <div className="relative z-10 w-full flex items-center justify-between text-xs text-[#6B5E49] pt-4 border-t border-[#E6DEC8]/60">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#059669]" />
                 <span>Verified Clean &amp; Instant Access</span>
               </span>
-              <span>Updated {product.specs.updatedAt}</span>
+              <span className="font-mono text-[#0E3B23] font-semibold">{product.fileName}</span>
             </div>
           </div>
 

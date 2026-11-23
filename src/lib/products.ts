@@ -41,6 +41,7 @@ export interface Product {
   formats?: string;
   specPills: [string, string, string];
   coverFile: string;
+  coverImage: string;
   fileName: string;
   fileSize: string;
   modules: ModulePeek[];
@@ -73,6 +74,7 @@ export const PRODUCTS: Product[] = [
       "6,000+ Worksheets & Templates",
     ],
     coverFile: "all-in-one-ultimate.png",
+    coverImage: "/covers/all-in-one-ultimate.png",
     fileName: "all-in-one-ultimate.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -113,6 +115,7 @@ export const PRODUCTS: Product[] = [
       "3,000+ T-Shirt & Festival Designs",
     ],
     coverFile: "resale-1000-vault.png",
+    coverImage: "/covers/resale-1000-vault.png",
     fileName: "resale-1000-vault.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -152,6 +155,7 @@ export const PRODUCTS: Product[] = [
       "IG Growth & Freelance Courses",
     ],
     coverFile: "all-in-one-starter.png",
+    coverImage: "/covers/all-in-one-starter.png",
     fileName: "all-in-one-starter.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -190,6 +194,7 @@ export const PRODUCTS: Product[] = [
       "CRM-Ready Sheet Format",
     ],
     coverFile: "pan-india-database.png",
+    coverImage: "/covers/pan-india-database.png",
     fileName: "pan-india-database.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -228,6 +233,7 @@ export const PRODUCTS: Product[] = [
       "Bulk Sender Tool",
     ],
     coverFile: "all-india-categories-db.png",
+    coverImage: "/covers/all-india-categories-db.png",
     fileName: "all-india-categories-db.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -266,6 +272,7 @@ export const PRODUCTS: Product[] = [
       "1,500+ AI Tools & Automations",
     ],
     coverFile: "chatgpt-mega-bundle.png",
+    coverImage: "/covers/chatgpt-mega-bundle.png",
     fileName: "chatgpt-mega-bundle.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -305,6 +312,7 @@ export const PRODUCTS: Product[] = [
       "Social Media + Beginner Guide",
     ],
     coverFile: "chatgpt-150k-prompts.png",
+    coverImage: "/covers/chatgpt-150k-prompts.png",
     fileName: "chatgpt-150k-prompts.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -344,6 +352,7 @@ export const PRODUCTS: Product[] = [
       "Plug-and-Play Tags",
     ],
     coverFile: "retargeting-templates.png",
+    coverImage: "/covers/retargeting-templates.png",
     fileName: "retargeting-templates.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -382,6 +391,7 @@ export const PRODUCTS: Product[] = [
       "High-CTR Mobile Formatting",
     ],
     coverFile: "promotional-templates.png",
+    coverImage: "/covers/promotional-templates.png",
     fileName: "promotional-templates.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -420,6 +430,7 @@ export const PRODUCTS: Product[] = [
       "Shorts & Reels Ready",
     ],
     coverFile: "viral-vault-cartoon.png",
+    coverImage: "/covers/viral-vault-cartoon.png",
     fileName: "viral-vault-cartoon.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -458,6 +469,7 @@ export const PRODUCTS: Product[] = [
       "5,000+ Bonus Reels & Thumbnails",
     ],
     coverFile: "usa-cartoon-bundle.png",
+    coverImage: "/covers/usa-cartoon-bundle.png",
     fileName: "usa-cartoon-bundle.pdf",
     fileSize: "Instant PDF Access",
     modules: [
@@ -496,6 +508,7 @@ export const PRODUCTS: Product[] = [
       "InDesign & Animate",
     ],
     coverFile: "adobe-collection.png",
+    coverImage: "/covers/adobe-collection.png",
     fileName: "adobe-collection.pdf",
     fileSize: "Instant PDF Access",
     modules: [
