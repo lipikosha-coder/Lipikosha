@@ -117,7 +117,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const match = unlockedData?.find((u) => u.id === prod.id);
       return {
         ...prod,
-        downloadUrl: match?.downloadUrl,
+        downloadUrl: match?.downloadUrl || `/downloads/${encodeURIComponent(prod.fileName)}`,
       };
     });
 

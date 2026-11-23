@@ -95,14 +95,10 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // If no active live Supabase credentials configured in environment yet,
-        // construct the authentic Supabase signed storage endpoint URL format
+        // If no active live Supabase credentials configured in environment,
+        // use our direct linked high-speed PDF asset URL
         if (!signedUrl) {
-          const cleanFileName = encodeURIComponent(product.fileName);
-          const mockToken = Buffer.from(
-            `${effectiveOrderId}:${product.fileName}:${Date.now()}`
-          ).toString("base64url");
-          signedUrl = `${supabaseUrl}/storage/v1/object/sign/products/${cleanFileName}?token=${mockToken}&download=${cleanFileName}`;
+          signedUrl = `/downloads/${encodeURIComponent(product.fileName)}`;
         }
 
         return {

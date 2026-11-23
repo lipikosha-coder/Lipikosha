@@ -25,6 +25,7 @@ export default function DownloadPage() {
   const { verifiedPayment } = useCart();
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [downloadedIds, setDownloadedIds] = useState<string[]>([]);
+  const [autoDownloaded, setAutoDownloaded] = useState(false);
 
   // CRITICAL REQUIREMENT:
   // Strictly ephemeral session. If refreshed (F5) or opened without active in-memory state,
@@ -47,6 +48,28 @@ export default function DownloadPage() {
     }
   }, [verifiedPayment, router]);
 
+  // DIRECT DOWNLOAD AFTER CONFIRMING PAYMENT:
+  // Automatically trigger download for purchased PDFs when entering the page
+  useEffect(() => {
+    if (
+      verifiedPayment &&
+      verifiedPayment.items &&
+      verifiedPayment.items.length > 0 &&
+      !autoDownloaded
+    ) {
+      setAutoDownloaded(true);
+      const timer = setTimeout(() => {
+        verifiedPayment.items.forEach((item, index) => {
+          setTimeout(() => {
+            triggerFileDownload(item);
+          }, index * 800);
+        });
+      }, 700);
+
+      return () => clearTimeout(timer);
+    }
+  }, [verifiedPayment, autoDownloaded]);
+
   // If redirecting or no session
   if (!verifiedPayment || !verifiedPayment.items || verifiedPayment.items.length === 0) {
     return (
@@ -56,30 +79,35 @@ export default function DownloadPage() {
     );
   }
 
+  const triggerFileDownload = (product: UnlockedProductItem) => {
+    try {
+      const targetUrl = product.downloadUrl || `/downloads/${encodeURIComponent(product.fileName)}`;
+      const link = document.createElement("a");
+      link.href = targetUrl;
+      link.setAttribute("download", product.fileName);
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setDownloadedIds((prev) => Array.from(new Set([...prev, product.id])));
+    } catch (err) {
+      console.warn("Direct link trigger fallback:", err);
+      try {
+        const blob = generateProductPdfBlob(product, verifiedPayment.orderId);
+        triggerDownloadPdfBlob(blob, product.fileName);
+      } catch (bErr) {
+        window.open(product.downloadUrl || `/downloads/${encodeURIComponent(product.fileName)}`, "_blank");
+      }
+      setDownloadedIds((prev) => Array.from(new Set([...prev, product.id])));
+    }
+  };
+
   const handleDownload = async (product: UnlockedProductItem) => {
     setDownloadingId(product.id);
     try {
-      // If we have an authentic live Supabase storage URL (not placeholder)
-      if (
-        product.downloadUrl &&
-        product.downloadUrl.startsWith("http") &&
-        !product.downloadUrl.includes("example.supabase.co")
-      ) {
-        const link = document.createElement("a");
-        link.href = product.downloadUrl;
-        link.download = product.fileName;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } else {
-        // Instant download: generate authentic PDF document with order certificate & deliverables
-        const blob = generateProductPdfBlob(product, verifiedPayment.orderId);
-        triggerDownloadPdfBlob(blob, product.fileName);
-      }
-
-      setDownloadedIds((prev) => [...prev, product.id]);
+      triggerFileDownload(product);
 
       // Celebratory mini confetti
       try {
@@ -92,18 +120,17 @@ export default function DownloadPage() {
       } catch (e) {}
     } catch (err) {
       console.error("PDF Download error:", err);
-      // Fallback
-      const blob = generateProductPdfBlob(product, verifiedPayment.orderId);
-      triggerDownloadPdfBlob(blob, product.fileName);
-      setDownloadedIds((prev) => [...prev, product.id]);
     } finally {
       setDownloadingId(null);
     }
   };
 
   const handleDownloadAll = async () => {
-    for (const item of verifiedPayment.items) {
-      await handleDownload(item);
+    for (let i = 0; i < verifiedPayment.items.length; i++) {
+      const item = verifiedPayment.items[i];
+      setTimeout(() => {
+        triggerFileDownload(item);
+      }, i * 600);
     }
   };
 
@@ -129,6 +156,13 @@ export default function DownloadPage() {
             Paid ₹{verifiedPayment.totalPaid} via {verifiedPayment.paymentMethod}
           </p>
         </div>
+
+        {autoDownloaded && (
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#E8F5EE] border border-[#059669]/30 text-xs font-semibold text-[#0E3B23] animate-pulse">
+            <CheckCircle2 className="w-4 h-4 text-[#059669]" />
+            <span>Direct PDF download initiated to your device</span>
+          </div>
+        )}
       </div>
 
       {/* Critical Ephemeral Session Warning Alert */}
