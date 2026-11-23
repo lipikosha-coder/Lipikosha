@@ -19,9 +19,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# local scripts
+# local scripts & secrets
 push-to-github.bat
+.env
 .env*.local
+.env.*
 
 # vercel
 .vercel

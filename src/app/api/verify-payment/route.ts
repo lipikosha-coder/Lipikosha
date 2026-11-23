@@ -5,29 +5,31 @@ import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
+
+    const effectiveOrderId =
+      body.razorpay_order_id ||
+      body.order_id ||
+      body.razorpayOrderId ||
+      body.orderId;
+
+    const effectivePaymentId =
+      body.razorpay_payment_id ||
+      body.payment_id ||
+      body.razorpayPaymentId ||
+      body.paymentId;
+
+    const effectiveSignature =
+      body.razorpay_signature ||
+      body.signature ||
+      body.razorpaySignature;
+
     const {
-      orderId,
       productIds,
       upiId,
       paymentMethod,
-      razorpayPaymentId,
-      razorpayOrderId,
-      razorpaySignature,
     } = body;
 
-    const itemsToUnlock = Array.isArray(productIds)
-      ? productIds.map((id: string) => getProductById(id)).filter(Boolean)
-      : [];
-
-    if (itemsToUnlock.length === 0) {
-      return NextResponse.json(
-        { error: "No valid products provided for verification" },
-        { status: 400 }
-      );
-    }
-
-    // STRICT VERIFICATION: Razorpay cryptographic HMAC SHA256 signature verification
     const keySecret = (process.env.RAZORPAY_KEY_SECRET || "").trim();
     if (!keySecret) {
       console.error("Payment verification failed: RAZORPAY_KEY_SECRET is missing");
@@ -37,33 +39,37 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!razorpaySignature || !razorpayOrderId || !razorpayPaymentId) {
-      console.error("Payment verification rejected: Missing transaction signature or IDs", {
-        hasSignature: Boolean(razorpaySignature),
-        hasOrderId: Boolean(razorpayOrderId),
-        hasPaymentId: Boolean(razorpayPaymentId),
-      });
+    // Validation: Missing fields
+    if (!effectiveOrderId || !effectivePaymentId || !effectiveSignature) {
       return NextResponse.json(
-        { error: "Payment verification rejected: Missing transaction credentials" },
+        {
+          error:
+            "Missing required transaction fields: order_id, payment_id, or signature",
+        },
         { status: 400 }
       );
     }
 
+    // Cryptographic verification: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
     const generatedSignature = crypto
       .createHmac("sha256", keySecret)
-      .update(`${razorpayOrderId}|${razorpayPaymentId}`)
+      .update(`${effectiveOrderId}|${effectivePaymentId}`)
       .digest("hex");
 
-    if (generatedSignature !== razorpaySignature) {
-      console.error("Cryptographic signature mismatch!", {
+    if (generatedSignature !== effectiveSignature) {
+      console.error("Signature mismatch:", {
         generated: generatedSignature,
-        received: razorpaySignature,
+        received: effectiveSignature,
       });
       return NextResponse.json(
         { error: "Payment verification failed: Invalid transaction signature" },
         { status: 400 }
       );
     }
+
+    const itemsToUnlock = Array.isArray(productIds)
+      ? productIds.map((id: string) => getProductById(id)).filter(Boolean)
+      : [];
 
     const supabaseUrl =
       process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -84,11 +90,6 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.warn("Supabase client init warning:", e);
     }
-
-    const effectiveOrderId =
-      razorpayOrderId ||
-      orderId ||
-      `LK-UPI-${Date.now().toString(36).toUpperCase()}`;
 
     // Generate signed download URLs using product.fileName in the 'products' bucket
     const unlockedFiles = await Promise.all(
@@ -136,11 +137,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      order_id: effectiveOrderId,
       orderId: effectiveOrderId,
-      paymentId: razorpayPaymentId || `pay_sim_${Date.now().toString(36)}`,
+      payment_id: effectivePaymentId,
+      paymentId: effectivePaymentId,
       verifiedAt: new Date().toISOString(),
-      paymentMethod: razorpayPaymentId ? "Razorpay" : paymentMethod || "UPI",
-      upiId: upiId || (razorpayPaymentId ? "razorpay@gateway" : "user@upi"),
+      paymentMethod: "Razorpay",
       unlockedFiles: unlockedFiles.filter(Boolean),
     });
   } catch (error) {

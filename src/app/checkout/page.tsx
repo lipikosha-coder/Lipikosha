@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { Stepper } from "@/components/Stepper";
@@ -97,10 +98,12 @@ export default function CheckoutPage() {
 
       // 2. Create authentic Razorpay order on the server
       setProcessingStatus("Generating order on Razorpay...");
-      const res = await fetch("/api/create-razorpay-order", {
+      const res = await fetch("/api/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          amount: Math.round(totalPrice * 100),
+          currency: "INR",
           productIds: checkoutItems.map((item) => item.id),
         }),
       });
@@ -117,13 +120,13 @@ export default function CheckoutPage() {
 
       // 3. Configure Razorpay modal
       const options = {
-        key: orderData.keyId,
+        key: orderData.key_id || orderData.keyId,
         amount: orderData.amount,
         currency: orderData.currency || "INR",
         name: "Lipi Kosha",
         description: "Treasury Digital Resource Package",
         image: "/logo.png",
-        order_id: orderData.orderId,
+        order_id: orderData.order_id || orderData.orderId,
         prefill: {
           name: customerName.trim() || undefined,
           email: customerEmail.trim() || undefined,
@@ -147,12 +150,13 @@ export default function CheckoutPage() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                orderId: response.razorpay_order_id,
+                order_id: response.razorpay_order_id,
+                payment_id: response.razorpay_payment_id,
+                signature: response.razorpay_signature,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
                 productIds: checkoutItems.map((item) => item.id),
-                paymentMethod: "Razorpay",
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpayOrderId: response.razorpay_order_id,
-                razorpaySignature: response.razorpay_signature,
               }),
             });
 
@@ -214,6 +218,9 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Razorpay Standard Checkout SDK */}
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+
       {/* Page Heading */}
       <div className="text-center sm:text-left">
         <h1 className="font-cinzel text-3xl sm:text-4xl font-bold text-[#0E3B23]">
