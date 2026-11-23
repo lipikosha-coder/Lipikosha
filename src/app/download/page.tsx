@@ -59,9 +59,12 @@ export default function DownloadPage() {
   const handleDownload = async (product: UnlockedProductItem) => {
     setDownloadingId(product.id);
     try {
-      // If we have a signed Supabase URL from the server
-      if (product.downloadUrl && product.downloadUrl.startsWith("http")) {
-        // Trigger download via anchor
+      // If we have an authentic live Supabase storage URL (not placeholder)
+      if (
+        product.downloadUrl &&
+        product.downloadUrl.startsWith("http") &&
+        !product.downloadUrl.includes("example.supabase.co")
+      ) {
         const link = document.createElement("a");
         link.href = product.downloadUrl;
         link.download = product.fileName;
@@ -71,7 +74,7 @@ export default function DownloadPage() {
         link.click();
         document.body.removeChild(link);
       } else {
-        // Fallback: generate authentic PDF document with order certificate
+        // Instant download: generate authentic PDF document with order certificate & deliverables
         const blob = generateProductPdfBlob(product, verifiedPayment.orderId);
         triggerDownloadPdfBlob(blob, product.fileName);
       }
