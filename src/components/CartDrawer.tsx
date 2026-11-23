@@ -107,7 +107,7 @@ export function CartDrawer() {
                   Your cart is empty
                 </p>
                 <p className="text-xs text-[#5C5343] max-w-xs mx-auto">
-                  Add instant-download PDF bundles to unlock direct UPI checkout.
+                  Add instant-download PDF bundles to unlock secure checkout.
                 </p>
               </div>
             )}
