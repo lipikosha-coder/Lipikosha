@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
     // If live or test Razorpay API keys are configured, generate authentic order on Razorpay
     if (keyId && keySecret) {
-      const authHeader = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
+      const authHeader = Buffer.from(`${keyId.trim()}:${keySecret.trim()}`).toString("base64");
       const receiptId = `rcpt_${Date.now().toString(36)}_${Math.floor(1000 + Math.random() * 9000)}`;
 
       const rzpRes = await fetch("https://api.razorpay.com/v1/orders", {
@@ -62,12 +62,21 @@ export async function POST(req: NextRequest) {
           orderId: orderData.id,
           amount: orderData.amount,
           currency: orderData.currency,
-          keyId: keyId,
+          keyId: keyId.trim(),
           productTitles: validProducts.map((p) => p?.title),
         });
       } else {
         const errorText = await rzpRes.text();
         console.error("Razorpay order creation failed:", errorText);
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Razorpay API rejected order creation",
+            details: errorText,
+            keyIdPrefix: keyId.substring(0, 8),
+          },
+          { status: 400 }
+        );
       }
     }
 
@@ -76,6 +85,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       isLiveGateway: false,
+      diagnostic: {
+        hasKeyId: Boolean(keyId),
+        hasKeySecret: Boolean(keySecret),
+        missing: !keyId ? "RAZORPAY_KEY_ID" : !keySecret ? "RAZORPAY_KEY_SECRET" : "None",
+      },
       orderId: demoOrderId,
       amount: amountInPaise,
       currency: "INR",
