@@ -56,6 +56,9 @@ export default function CheckoutPage() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
+  const [selectedMethod, setSelectedMethod] = useState<
+    "upi" | "gpay" | "phonepe" | "paytm" | "qr" | "cards"
+  >("upi");
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStatus, setProcessingStatus] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -118,7 +121,52 @@ export default function CheckoutPage() {
 
       setProcessingStatus("Opening payment gateway...");
 
-      // 3. Configure Razorpay modal strictly for UPI & QR (Cards, Netbanking & Wallets disabled)
+      // Configure explicit display blocks for UPI Apps, Dynamic QR, and Cards
+      const customBlocks: Record<string, any> = {
+        preferred_upi: {
+          name: "UPI Apps & Dynamic QR",
+          instruments: [
+            {
+              method: "upi",
+              apps:
+                selectedMethod === "gpay"
+                  ? ["google_pay", "phonepe", "paytm", "bhim"]
+                  : selectedMethod === "phonepe"
+                  ? ["phonepe", "google_pay", "paytm", "bhim"]
+                  : selectedMethod === "paytm"
+                  ? ["paytm", "phonepe", "google_pay", "bhim"]
+                  : ["google_pay", "phonepe", "paytm", "bhim", "cred"],
+              flows:
+                selectedMethod === "qr"
+                  ? ["qr", "intent", "collect"]
+                  : ["intent", "qr", "collect"],
+            },
+          ],
+        },
+        cards: {
+          name: "Debit & Credit Cards",
+          instruments: [{ method: "card" }],
+        },
+        netbanking: {
+          name: "NetBanking & Wallets",
+          instruments: [{ method: "netbanking" }, { method: "wallet" }],
+        },
+      };
+
+      const sequence =
+        selectedMethod === "cards"
+          ? ["block.cards", "block.preferred_upi", "block.netbanking"]
+          : ["block.preferred_upi", "block.cards", "block.netbanking"];
+
+      const displayConfig = {
+        blocks: customBlocks,
+        sequence: sequence,
+        preferences: {
+          show_default_blocks: true,
+        },
+      };
+
+      // 3. Configure Razorpay modal
       const options = {
         key: orderData.key_id || orderData.keyId,
         amount: orderData.amount,
@@ -127,37 +175,22 @@ export default function CheckoutPage() {
         description: "Treasury Digital Resource Package",
         image: "/logo.png",
         order_id: orderData.order_id || orderData.orderId,
-        method: "upi",
-        config: {
-          display: {
-            blocks: {
-              upi: {
-                name: "Pay using UPI / QR",
-                instruments: [
-                  {
-                    method: "upi",
-                  },
-                ],
-              },
-            },
-            sequence: ["block.upi"],
-            preferences: {
-              show_default_blocks: false,
-            },
-            hide: [
-              { method: "card" },
-              { method: "netbanking" },
-              { method: "wallet" },
-              { method: "emi" },
-              { method: "paylater" },
-            ],
-          },
-        },
         prefill: {
           name: customerName.trim() || undefined,
           email: customerEmail.trim() || undefined,
           contact: customerPhone.trim() || undefined,
+          method: selectedMethod === "cards" ? "card" : "upi",
         },
+        method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+          wallet: true,
+        },
+        config: {
+          display: displayConfig,
+        },
+        display: displayConfig,
         theme: {
           color: "#0E3B23",
         },
@@ -250,10 +283,10 @@ export default function CheckoutPage() {
       {/* Page Heading */}
       <div className="text-center sm:text-left">
         <h1 className="font-cinzel text-3xl sm:text-4xl font-bold text-[#0E3B23]">
-          Pay Securely via UPI
+          Pay Securely
         </h1>
         <p className="text-xs sm:text-sm text-[#5C5343] mt-1">
-          Instant digital delivery via UPI Apps (Google Pay, PhonePe, Paytm) or Dynamic QR Code.
+          Instant digital delivery via Razorpay with UPI, QR, Cards, or NetBanking.
         </p>
       </div>
 
@@ -285,39 +318,157 @@ export default function CheckoutPage() {
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#FAF7F0] border border-[#E6DEC8] text-[#0E3B23] text-[11px] font-bold tracking-wider uppercase mb-1">
                   <Sparkles className="w-3 h-3 text-[#C6923A]" />
-                  <span>Verified UPI Gateway</span>
+                  <span>Official Razorpay Payment Gateway</span>
                 </div>
                 <h2 className="font-heading text-lg sm:text-xl font-bold text-[#0E3B23]">
-                  Pay via UPI / QR
+                  Select Payment Method
                 </h2>
                 <p className="text-xs text-[#6B5E49] mt-0.5">
-                  Scan the dynamic QR code or pay directly with any UPI app
+                  UPI, Instant Dynamic QR, Debit/Credit Card, or NetBanking
                 </p>
               </div>
               <span className="hidden sm:inline-block text-[11px] font-mono font-bold text-[#0E3B23] bg-[#FAF7F0] px-2.5 py-1 rounded-md border border-[#E6DEC8]">
-                NPCI &bull; RBI Compliant
+                RBI Compliant
               </span>
             </div>
 
-            {/* Supported Payment Options Grid: UPI & QR Only */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="p-4 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-white border border-[#E6DEC8] flex items-center justify-center flex-shrink-0 text-[#0E3B23] shadow-xs">
-                  <Smartphone className="w-5 h-5 text-[#0E3B23]" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-[#0E3B23] block">UPI Instant Apps</span>
-                  <span className="text-[11px] text-[#6B5E49]">Google Pay, PhonePe, Paytm, BHIM, CRED</span>
-                </div>
+            {/* Interactive Payment Method / UPI Apps Selector */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-[#0E3B23] uppercase tracking-wider">
+                  Choose Payment Method / UPI App
+                </label>
+                <span className="text-[11px] text-[#6B5E49] italic">
+                  Tap to pre-select in gateway
+                </span>
               </div>
-              <div className="p-4 bg-[#FAF7F0] rounded-xl border border-[#E6DEC8] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-white border border-[#E6DEC8] flex items-center justify-center flex-shrink-0 text-[#0E3B23] shadow-xs">
-                  <QrCode className="w-5 h-5 text-[#0E3B23]" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-[#0E3B23] block">Dynamic QR Code</span>
-                  <span className="text-[11px] text-[#6B5E49]">Scan with any camera or UPI app</span>
-                </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {/* 1. Google Pay */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("gpay")}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                    selectedMethod === "gpay"
+                      ? "border-2 border-[#0E3B23] bg-[#FAF7F0] shadow-sm"
+                      : "border-[#E6DEC8] bg-white hover:border-[#C6923A] hover:bg-[#FAF7F0]/50"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center flex-shrink-0 font-bold text-xs text-[#059669]">
+                    GPay
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-[#0E3B23] block truncate">
+                      Google Pay
+                    </span>
+                    <span className="text-[10px] text-[#6B5E49]">UPI Instant</span>
+                  </div>
+                </button>
+
+                {/* 2. PhonePe */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("phonepe")}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                    selectedMethod === "phonepe"
+                      ? "border-2 border-[#0E3B23] bg-[#FAF7F0] shadow-sm"
+                      : "border-[#E6DEC8] bg-white hover:border-[#C6923A] hover:bg-[#FAF7F0]/50"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 border border-purple-200 flex items-center justify-center flex-shrink-0 font-bold text-xs text-[#6B21A8]">
+                    PhonePe
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-[#0E3B23] block truncate">
+                      PhonePe
+                    </span>
+                    <span className="text-[10px] text-[#6B5E49]">UPI Instant</span>
+                  </div>
+                </button>
+
+                {/* 3. Paytm */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("paytm")}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                    selectedMethod === "paytm"
+                      ? "border-2 border-[#0E3B23] bg-[#FAF7F0] shadow-sm"
+                      : "border-[#E6DEC8] bg-white hover:border-[#C6923A] hover:bg-[#FAF7F0]/50"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center flex-shrink-0 font-bold text-xs text-[#0284C7]">
+                    Paytm
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-[#0E3B23] block truncate">
+                      Paytm
+                    </span>
+                    <span className="text-[10px] text-[#6B5E49]">UPI Instant</span>
+                  </div>
+                </button>
+
+                {/* 4. Instant Dynamic QR */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("qr")}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                    selectedMethod === "qr"
+                      ? "border-2 border-[#0E3B23] bg-[#FAF7F0] shadow-sm"
+                      : "border-[#E6DEC8] bg-white hover:border-[#C6923A] hover:bg-[#FAF7F0]/50"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#FAF7F0] border border-[#E6DEC8] flex items-center justify-center flex-shrink-0 text-[#0E3B23]">
+                    <QrCode className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-[#0E3B23] block truncate">
+                      Scan QR Code
+                    </span>
+                    <span className="text-[10px] text-[#6B5E49]">Any UPI App</span>
+                  </div>
+                </button>
+
+                {/* 5. All UPI Apps / BHIM / CRED */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("upi")}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                    selectedMethod === "upi"
+                      ? "border-2 border-[#0E3B23] bg-[#FAF7F0] shadow-sm"
+                      : "border-[#E6DEC8] bg-white hover:border-[#C6923A] hover:bg-[#FAF7F0]/50"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#FAF7F0] border border-[#E6DEC8] flex items-center justify-center flex-shrink-0 text-[#0E3B23]">
+                    <Smartphone className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-[#0E3B23] block truncate">
+                      BHIM / CRED / ID
+                    </span>
+                    <span className="text-[10px] text-[#6B5E49]">Enter UPI ID</span>
+                  </div>
+                </button>
+
+                {/* 6. Cards & NetBanking */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedMethod("cards")}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-2.5 ${
+                    selectedMethod === "cards"
+                      ? "border-2 border-[#0E3B23] bg-[#FAF7F0] shadow-sm"
+                      : "border-[#E6DEC8] bg-white hover:border-[#C6923A] hover:bg-[#FAF7F0]/50"
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#FAF7F0] border border-[#E6DEC8] flex items-center justify-center flex-shrink-0 text-[#0E3B23]">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-[#0E3B23] block truncate">
+                      Cards &amp; NetBanking
+                    </span>
+                    <span className="text-[10px] text-[#6B5E49]">Visa, MC, 50+ Banks</span>
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -380,7 +531,19 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <Lock className="w-5 h-5 text-[#C6923A]" />
-                    <span>Pay ₹{totalPrice} via UPI / QR</span>
+                    <span>
+                      {selectedMethod === "gpay"
+                        ? `Pay ₹${totalPrice} with Google Pay`
+                        : selectedMethod === "phonepe"
+                        ? `Pay ₹${totalPrice} with PhonePe`
+                        : selectedMethod === "paytm"
+                        ? `Pay ₹${totalPrice} with Paytm`
+                        : selectedMethod === "qr"
+                        ? `Pay ₹${totalPrice} via Dynamic QR`
+                        : selectedMethod === "cards"
+                        ? `Pay ₹${totalPrice} via Card / NetBanking`
+                        : `Pay ₹${totalPrice} via UPI / Razorpay`}
+                    </span>
                   </>
                 )}
               </button>
@@ -390,7 +553,7 @@ export default function CheckoutPage() {
             <div className="pt-2 border-t border-[#E6DEC8]/60 flex flex-col sm:flex-row items-center justify-between text-xs text-[#6B5E49] gap-2">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-[#059669]" />
-                <span>256-bit SSL encrypted &bull; Official NPCI UPI integration</span>
+                <span>256-bit SSL encrypted &bull; Zero storage of card/UPI credentials</span>
               </span>
               <span className="font-mono text-[11px] text-[#8A7E6B]">
                 Immediate download unlock upon payment confirmation
